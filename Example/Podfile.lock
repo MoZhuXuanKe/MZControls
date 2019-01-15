@@ -1,0 +1,16 @@
+PODS:
+  - MZControls (0.1.0)
+
+DEPENDENCIES:
+  - MZControls (from `../`)
+
+EXTERNAL SOURCES:
+  MZControls:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  MZControls: bf240e8c3340938f55f0f263aa6698391fa56ad2
+
+PODFILE CHECKSUM: 114d4d411dde73f1c5e5f9467122a87d4f46657a
+
+COCOAPODS: 1.5.3

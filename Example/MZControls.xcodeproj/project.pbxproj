@@ -61,11 +61,11 @@
 		606FC2411953D9B200FFA9A0 /* Tests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Tests-Prefix.pch"; sourceTree = "<group>"; };
 		60F725EA456F10154AC4B79C /* Pods-MZControls_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MZControls_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MZControls_Example/Pods-MZControls_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		71719F9E1E33DC2100824A3D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		7E9AAEF2E64AF7B62DBBCCF0 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
+		7E9AAEF2E64AF7B62DBBCCF0 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		873B8AEA1B1F5CCA007FD442 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Main.storyboard; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		AB28EED690043E2F06A6AC8B /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		AB28EED690043E2F06A6AC8B /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		B42538CCDCB71F69FCA02635 /* Pods-MZControls_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MZControls_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-MZControls_Example/Pods-MZControls_Example.release.xcconfig"; sourceTree = "<group>"; };
-		B4F56805CDEF538E110C9CBC /* MZControls.podspec */ = {isa = PBXFileReference; includeInIndex = 1; name = MZControls.podspec; path = ../MZControls.podspec; sourceTree = "<group>"; };
+		B4F56805CDEF538E110C9CBC /* MZControls.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = MZControls.podspec; path = ../MZControls.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		C26EB07725C7E602C6AB9D8F /* Pods-MZControls_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MZControls_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-MZControls_Tests/Pods-MZControls_Tests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 

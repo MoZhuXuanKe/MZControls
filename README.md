@@ -27,3 +27,6 @@ mozhu, mozhuxuanke@icloud.com
 ## License
 
 MZControls is available under the MIT license. See the LICENSE file for more info.
+
+A basic development tool library.
+
