@@ -62,7 +62,9 @@ static void addRoundedRectToPath(CGContextRef context, CGRect rect,
     float x = (rect.size.width - fontSize_.width) / 2.0;
     float y = (rect.size.height - fontSize_.height) / 2.0;
     CGRect r = CGRectMake(x, y, fontSize_.width, fontSize_.height);
-    [info_ drawInRect:r withFont:[UIFont systemFontOfSize:kSGInfoAlert_fontSize] lineBreakMode:UILineBreakModeTailTruncation];
+    UIColor *blackColor = [UIColor blackColor];
+    UIFont *font = [UIFont systemFontOfSize:kSGInfoAlert_fontSize];
+    [info_ drawInRect:r withAttributes:@{NSFontAttributeName:font,NSForegroundColorAttributeName:blackColor}];
 }
 
 
@@ -86,8 +88,14 @@ static void addRoundedRectToPath(CGContextRef context, CGRect rect,
           inView:(UIView *)view 
         vertical:(float)height time:(NSTimeInterval )time alpha:(CGFloat)alpha{
     height = height < 0 ? 0 : height > 1 ? 1 : height;
-    CGSize size = [info sizeWithFont:[UIFont systemFontOfSize:kSGInfoAlert_fontSize]
-                   constrainedToSize:kMax_ConstrainedSize];
+    UIFont * labelFont = [UIFont systemFontOfSize:kSGInfoAlert_fontSize];
+    NSMutableParagraphStyle * paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+       //设置换行符模式
+    paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+    NSDictionary *attdic = [NSDictionary dictionaryWithObjectsAndKeys:labelFont,NSFontAttributeName,paragraphStyle,NSParagraphStyleAttributeName, nil];
+    CGRect rect = [info boundingRectWithSize:kMax_ConstrainedSize options:NSStringDrawingUsesLineFragmentOrigin attributes:attdic context:nil];
+  
+    CGSize size = rect.size;
     CGRect frame = CGRectMake(0, 0, size.width, size.height);
     SGInfoAlert *alert = [[SGInfoAlert alloc] initWithFrame:frame bgColor:color info:info];
     alert.center = CGPointMake(view.center.x, kMainScreen_width/3);

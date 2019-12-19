@@ -6,6 +6,7 @@
 //  Copyright (c) 2015年 _LoL_. All rights reserved.
 //
 #import <Foundation/Foundation.h>
+#import <AVFoundation/AVFoundation.h>
 #import <UIKit/UIKit.h>
 #import "SGInfoAlert.h"
 #import "GTCommontHeader.h"
@@ -13,17 +14,29 @@
 #import "GTMBase64.h"
 
 
+typedef NS_ENUM(NSUInteger, WXGradientLayer) {
+    WXGradientLayer_leftToRight=0,//!< 渐变色从左到右
+    WXGradientLayer_rightToLeft=0,//!< 渐变色从右到左
+    WXGradientLayer_topToEnd,//!< 渐变色从上到下
+    WXGradientLayer_endToTop, //!< 渐变色从下到上
+};
+//view圆角
+typedef NS_OPTIONS(NSUInteger, WXRectCorner) {
+    WXRectCornerTopLeftRight      = 1 << 0,//!< 左上_右上_角为圆角.
+    WXRectCornerBottomLeftRight   = 1 << 1,  //!< 左下_右下_角设圆角.
+    WXRectCornerTopLeft     = 1 << 2,  //!< 左下_右下_角设圆角.
+    WXRectCornerTopRight    = 1 << 3,  //!< 左下_右下_角设圆角.
+    WXRectCornerBottomLeft  = 1 << 4,  //!< 左下_右下_角设圆角.
+    WXRectCornerBottomRight  = 1 << 5,  //!< 左下_右下_角设圆角.
+    WXRectCornerAllCorners  = ~0UL
+};
+
 //阴影位置
 typedef NS_OPTIONS(NSUInteger, WXShadowFrame) {
     WXShadowRect                         =  0,//!< 周边.
     WXShadowRightBottom            =  1,  //!< 右下阴影.
     WXShadowBottom                    =  2, //!< 正下面.
     WXShadowTop                          =  3  //!< 正下面.
-};
-//view圆角
-typedef NS_OPTIONS(NSUInteger, WXRectCorner) {
-    WXRectCornerTopLeftRight      = 0,//!< 左上_右上_角为圆角.
-    WXRectCornerBottomLeftRight =1  //!< 左下_右下_角设圆角.
 };
 //点击按钮的效果
 typedef NS_OPTIONS(NSUInteger, WXAnimationClickType) {
@@ -118,8 +131,14 @@ typedef NS_OPTIONS(NSUInteger, AnimationSubType) {
  *  电话弹出框
  *
  *  @param vc
+ *  @param tel
  */
-+(void)vc:(id)vc;
+
+
+/// 电话弹出框
+/// @param vc 调用此方法的 vc对象
+/// @param tel  拨打的电话号码
++(void)vc:(id)vc tel:(NSString*)tel;
 
 /**
  *  根据文字返回高度
@@ -164,24 +183,24 @@ typedef NS_OPTIONS(NSUInteger, AnimationSubType) {
 
 
 
-/**
- *  加密
- *
- *  @param plainText <#plainText description#>
- *  @param key       <#key description#>
- *
- *  @return <#return value description#>
- */
-+ (NSString *)encryptUseDES:(NSString *)plainText key:(NSString *)key;
-/**
- *  解密
- *
- *  @param cipherText <#cipherText description#>
- *  @param key        <#key description#>
- *
- *  @return <#return value description#>
- */
-+(NSString *)decryptUseDES:(NSString*)cipherText key:(NSString*)key;
+///**
+// *  加密
+// *
+// *  @param plainText <#plainText description#>
+// *  @param key       <#key description#>
+// *
+// *  @return <#return value description#>
+// */
+//+ (NSString *)encryptUseDES:(NSString *)plainText key:(NSString *)key;
+///**
+// *  解密
+// *
+// *  @param cipherText <#cipherText description#>
+// *  @param key        <#key description#>
+// *
+// *  @return <#return value description#>
+// */
+//+(NSString *)decryptUseDES:(NSString*)cipherText key:(NSString*)key;
 /**
  *  画一个带虚线边框的view
  *
@@ -264,4 +283,129 @@ typedef NS_OPTIONS(NSUInteger, AnimationSubType) {
  ** 字符串判空
  */
 +(BOOL)isBlankString:(NSString *)aStr;
+
+
+
++(BOOL)judgePassWordLegal:(NSString *)pass;
+
+//textNodeHeight
++(CGFloat)textNodeHeightWithAttString:(NSAttributedString*)attString width:(CGFloat)width;
+
+//为传入的view添加渐变色
++(UIView*)gradientLayerForView:(UIView*)view WithSize:(CGRect)frame direction:(WXGradientLayer)direction starColor:(NSString*)startColor endColor:(NSString*)endColor;
+
+
+//为label 指定字符串设置变色文字
++(NSMutableAttributedString *)LabelAttributedString:(NSString*)text string:(NSString*)string color:(UIColor *)color size:(CGFloat)size;
+
+/**
+ ** 为label 指定字符串设置变色文字
+ */
++(NSMutableAttributedString *)attributedString:(NSString*)text string1:(NSString*)string1 string2:(NSString*)string2 color1:(NSString *)color1 color2:(NSString *)color2 size1:(CGFloat)size1 size2:(CGFloat)size2;
+
++(NSMutableAttributedString *)attributedString:(NSString*)text string1:(NSString*)string1 string2:(NSString*)string2 color:(UIColor *)color color1:(UIColor *)color1 size1:(CGFloat)size1 size2:(CGFloat)size2;
+
+
+/**
+ ** 为label 部分内容加下划线
+ */
++(UILabel*)underLineLabel:(UILabel*)label text:(NSString*)text;
+
+
+/**
+ 字符串最全判空
+ @param aStr 传入需要判断的字符串
+ @return 如果为空则返回@"" 不为空返回原字符串
+ */
++(NSString*)isNilString:(NSString *)aStr;
+
+
+
+// 校验一位字符是数字或小数点
++ (BOOL)checkEnterNumText:(NSString *)string;
+
+
+/**单个圆角设置*/
++(UIView*)maskOneCornerWithView:(UIView *)view StyleType:(UIRectCorner)styleType cornerRadii:(CGFloat)cornerRadii;
+/**
+ ** view左右上角或左右下角_圆角设置
+ */
++(UIView*)maskCornerWithView:(UIView *)view StyleType:(WXRectCorner)styleType cornerRadii:(CGFloat)cornerRadii;
+
+
+/**
+ 判断是否安装app
+ 
+ @param indentf   例如 微信：weixin  tencent sinaweibo
+ @param urlScheme 三方提供的appid
+ @return          YES 已安装 NO 未安装
+ */
++ (BOOL)checkHasAppIndentf:(NSString *)indentf urlScheme:(NSString *)urlScheme;
+
+
+
++ (NSString *)returnJson:(id)params;
+
+/**
+ 校验图片URL是否能正确拿到图片对象
+ 
+ @param imgUrl 将要校验的图片的URL
+ @return 返回图片的有效性 YES:图片URL有效能获得图片 NO:图片URL无效,不能拿到图片
+ */
++ (BOOL)checkImageUrl:(NSString*)imgUrl;
+
+/**
+ 调整图片的方向
+ 
+ @param image 需要调整方向的图片
+ @param dorie orientation 目前陀螺仪检测到的硬件设备的方向
+ @param position 摄像头位置:前置摄像头或后置摄像头
+ @return 返回一个调整好正常方向的图片
+ */
++ (UIImage*)fixImageOrie:(UIImage*)image dorie:(UIDeviceOrientation)dorie position:(AVCaptureDevicePosition)position;
+
+
+/**
+ 压缩上传图片大小
+
+ @param myimage 上传的图片
+ @return 根据图片大小,返回 1~3M 大小的 图片的data
+ */
++ (NSData *)imageData:(UIImage *)myimage;
+
+
+/**
+ 计算d图片大小
+
+ @param image 图片
+ */
++ (void)calulateImageFileSize:(UIImage *)image;
+
+
+
+// 获取当前控制器
++ (UIViewController*)currentViewController;
+
+
+/**
+ 创建二维码
+
+ @param string 二维码的内容
+ @param size 二维码大小
+ @return 返回生成的二维码
+ */
++ (UIImage *)createQRcodeWithString:(NSString*)string
+                           withSize:(CGFloat)size;
+
+
+/// 判断用户是否允许接收通知
++ (BOOL)isUserNotificationEnable;
+
+/// 如果用户关闭了接收通知功能，该方法可以跳转到APP设置页面进行修改  iOS版本 >=8.0 处理逻辑
++ (void)goToAppSystemSetting;
+
+//截取指定 view ,渲染为r图片;
++ (UIImage*)shotView:(UIView*)targetView;
+
++ (UIColor *)colorWithHexString:(NSString *)hexString;
 @end

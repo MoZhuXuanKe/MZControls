@@ -6,6 +6,15 @@
 
 #import "MyControl.h"
 #import <sys/utsname.h>
+#import <CoreText/CTFramesetter.h>
+
+
+
+//苹方字体简体细
+#define kPingFangJianXi [[UIDevice currentDevice].systemVersion floatValue] >= 9.0?@"PingFangSC-Regular":@".PingFang-SC-Regular"
+
+//苹方字体简体粗
+#define kPingFangJianCu [[UIDevice currentDevice].systemVersion floatValue] >= 9.0?@"PingFangSC-Medium":@".PingFang-SC-Medium"
 
 
 @implementation MyControl
@@ -277,13 +286,13 @@
     [lineView.layer addSublayer:shapeLayer];
 }
 
-+(void)vc:(id)vc
++(void)vc:(id)vc tel:(NSString*)tel
 {
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"" message:[NSString stringWithFormat:@"确定要拨打%@?",[MyControl getObjectForKey:@"hotline"]] preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"" message:[NSString stringWithFormat:@"确定要拨打%@?",tel] preferredStyle:UIAlertControllerStyleAlert];
     
     UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
     UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel://%@",[MyControl getObjectForKey:@"hotline"]]]];
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel://%@",tel]]];
     }];
     [alertController addAction:cancelAction];
     [alertController addAction:okAction];
@@ -354,7 +363,7 @@
         textSize = rect.size;
     }
     else{
-        textSize = [text sizeWithFont:[UIFont systemFontOfSize:font] constrainedToSize:maxSize lineBreakMode:NSLineBreakByCharWrapping];
+        textSize = [text boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, 32) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:font]} context:nil].size;
     }
     return textSize;
 }
@@ -531,21 +540,7 @@
     label.attributedText = attribtStr;
     return label;
 }
-/**
- ** view左右上角或左右下角_圆角设置
- */
-+(UIView*)maskCornerWithView:(UIView *)view StyleType:(WXRectCorner)styleType{
 
-    UIBezierPath *maskPath =[UIBezierPath bezierPath];
-    if (styleType==WXRectCornerTopLeftRight) {
-        maskPath= [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerTopLeft | UIRectCornerTopRight cornerRadii:CGSizeMake(5 , 5)];
-        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
-    }else{
-        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerBottomLeft | UIRectCornerBottomRight cornerRadii:CGSizeMake(5 , 5)];
-        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
-    }
-    return view;
-}
 /** 返回圆角设置*/
 +(CAShapeLayer*)maskLayerView:(UIView *)view maskPAth:(UIBezierPath*)maskPath{
     CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];
@@ -553,25 +548,7 @@
     maskLayer.path = maskPath.CGPath;
     return maskLayer;
 }
-/**单个圆角设置*/
-+(UIView*)maskOneCornerWithView:(UIView *)view StyleType:(UIRectCorner)styleType{
-    
-    UIBezierPath *maskPath =[UIBezierPath bezierPath];
-    if (styleType==UIRectCornerTopLeft) {
-        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerTopLeft cornerRadii:CGSizeMake(5 , 5)];
-        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
-    }else if (styleType==UIRectCornerTopRight){
-        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerTopRight cornerRadii:CGSizeMake(5 , 5)];
-        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
-    }else if (styleType==UIRectCornerBottomLeft){
-        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerBottomLeft  cornerRadii:CGSizeMake(5 , 5)];
-        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
-    }else{
-        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners: UIRectCornerBottomRight cornerRadii:CGSizeMake(5 , 5)];
-       view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
-    }
-    return view;
-}
+
 //设置动画
 +(void)animationForView:(UIView*)view Type:(AnimationType)type WithSubtype:(AnimationSubType)subtype{
    
@@ -678,7 +655,7 @@
         animation.subtype =arr[i];
     }
     //设置运动速度
-    animation.timingFunction = UIViewAnimationOptionCurveEaseInOut;
+    animation.timingFunction = kCAMediaTimingFunctionEaseInEaseOut;
     
     [view.layer addAnimation:animation forKey:@"animation"];
 }
@@ -948,14 +925,157 @@
     // 为label添加Attributed
     [label setAttributedText:noteStr];
 }
+
+
+/*  判断用户输入的密码是否符合规范，符合规范的密码要求：
+ *  1. 长度大于8位
+ *  2. 密码中必须同时包含数字和字母
+*/
++(BOOL)judgePassWordLegal:(NSString *)pass{
+    BOOL result = false;
+    if ([pass length] >= 6){
+        // 判断长度大于6位后再接着判断是否同时包含数字和字符
+        NSString * regex = @"^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,16}$";
+        NSPredicate *pred = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", regex];
+        result = [pred evaluateWithObject:pass];
+    }
+    return result;
+}
+
++(CGFloat)textNodeHeightWithAttString:(NSAttributedString*)attString width:(CGFloat)width{
+    
+    if (!width) {
+        width = [UIScreen mainScreen].bounds.size.width;
+    }
+    
+    CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((__bridge  CFAttributedStringRef)attString);
+    CGSize targetSize = CGSizeMake(width, CGFLOAT_MAX);
+    CGSize fitSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, [attString length]), NULL, targetSize, NULL);
+    CFRelease(framesetter);
+    
+    return fitSize.height;
+}
+
++ (UIView*)gradientLayerForView:(UIView*)view WithSize:(CGRect)frame direction:(WXGradientLayer)direction starColor:(NSString*)startColor endColor:(NSString*)endColor
+{
+    CAGradientLayer *gradientLayer = [CAGradientLayer layer];
+    gradientLayer.frame = frame;  // 设置显示的frame
+    if (direction == WXGradientLayer_leftToRight || direction == WXGradientLayer_topToEnd) {
+        gradientLayer.colors = @[(id)[MyControl colorWithHexString:startColor].CGColor,(id)[MyControl colorWithHexString:endColor].CGColor];
+    } else {
+        gradientLayer.colors = @[(id)[MyControl colorWithHexString:endColor].CGColor,(id)[MyControl colorWithHexString:startColor].CGColor];
+    }
+    if (direction == WXGradientLayer_leftToRight || direction == WXGradientLayer_rightToLeft) {
+        gradientLayer.startPoint = CGPointMake(0, 0);
+        gradientLayer.endPoint = CGPointMake(1, 0);
+    } else {
+        gradientLayer.startPoint = CGPointMake(0, 0);
+        gradientLayer.endPoint = CGPointMake(0, 1);
+    }
+    [view.layer addSublayer:gradientLayer];
+    return view;
+}
+
+//为label 指定字符串设置变色文字
++(NSMutableAttributedString *)LabelAttributedString:(NSString*)text string:(NSString*)string color:(UIColor *)color size:(CGFloat)size{
+    // 创建Attributed
+    NSMutableAttributedString *noteStr = [[NSMutableAttributedString alloc] initWithString:text];
+    // 需要改变的第一个文字的位置
+
+    // 需要改变的区间
+    NSRange range = [text rangeOfString:string];
+    // 改变颜色
+    [noteStr addAttribute:NSForegroundColorAttributeName value:color range:range];
+    NSRange range2 = [text rangeOfString:text];
+    [noteStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:kPingFangJianXi size:size] range:range2];//Helvetica-BoldOblique
+    // 为label添加Attributed
+    return noteStr;
+}
+
+//为label 指定字符串设置变色文字
++(NSMutableAttributedString *)attributedString:(NSString*)text string1:(NSString*)string1 string2:(NSString*)string2 color1:(NSString *)color1 color2:(NSString *)color2 size1:(CGFloat)size1 size2:(CGFloat)size2 {
+    // 创建Attributed
+    NSMutableAttributedString *noteStr = [[NSMutableAttributedString alloc] initWithString:text];
+    // 需要改变的第一个文字的位置
+    
+    // 需要改变的区间
+    NSRange range1 = [text rangeOfString:string1];
+    NSRange range2 = [text rangeOfString:string2];
+    // 改变颜色
+    [noteStr addAttribute:NSForegroundColorAttributeName value:[MyControl colorWithHexString:color1] range:range1];
+    [noteStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:kPingFangJianXi size:size1] range:range1];//Helvetica-BoldOblique
+    
+    [noteStr addAttribute:NSForegroundColorAttributeName value:[MyControl colorWithHexString:color2] range:range2];
+    [noteStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:kPingFangJianXi size:size2] range:range2];//Helvetica-BoldOblique
+    // 为label添加Attributed
+    return noteStr;
+}
+
++ (BOOL)checkEnterNumText:(NSString *)string
+{
+    if (![string isKindOfClass:[NSString class]]) {
+        return NO;
+    }
+    if ([string length] == 0) {
+        return NO;
+    }
+    
+    NSString *regex = @"^[0-9.]{1}$";
+    NSPredicate *pred = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", regex];
+    BOOL isMatch = [pred evaluateWithObject:string];
+    
+    return isMatch;
+}
+
+//为label 指定字符串设置变色文字
++(NSMutableAttributedString *)attributedString:(NSString*)text string1:(NSString*)string1 string2:(NSString*)string2 color:(UIColor *)color color1:(UIColor *)color1 size1:(CGFloat)size1 size2:(CGFloat)size2 {
+    // 创建Attributed
+    NSMutableAttributedString *noteStr = [[NSMutableAttributedString alloc] initWithString:text];
+    // 需要改变的第一个文字的位置
+    
+    // 需要改变的区间
+    NSRange range1 = [text rangeOfString:string1];
+    NSRange range2 = [text rangeOfString:string2];
+    // 改变颜色
+    [noteStr addAttribute:NSForegroundColorAttributeName value:color range:range1];
+    [noteStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:kPingFangJianXi size:size1] range:range1];//Helvetica-BoldOblique
+    
+    [noteStr addAttribute:NSForegroundColorAttributeName value:color1 range:range2];
+    [noteStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:kPingFangJianXi size:size2] range:range2];//Helvetica-BoldOblique
+    // 为label添加Attributed
+    return noteStr;
+}
+
 /**
- ** 字符串判空
+ ** 为label 部分内容加下划线
+ */
++(UILabel*)underLineLabel:(UILabel*)label text:(NSString*)text{
+    if (label.text.length==0||label.text==NULL||label.text==nil||[label.text isEqualToString:@""]) return label;
+    // 下划线
+    NSDictionary *attribtDic = @{NSUnderlineStyleAttributeName: [NSNumber numberWithInteger:NSUnderlineStyleSingle]};
+    //用label的文字生成一个富文本字符串
+    NSMutableAttributedString *attribtStr = [[NSMutableAttributedString alloc] initWithString:label.text];
+    // 需要改变的文字的区间
+    NSRange range = [label.text rangeOfString:text];
+    //为range范围内的文字添加富文本属性
+    [attribtStr addAttributes:attribtDic range:range];
+    //赋值
+    label.attributedText = attribtStr;
+    return label;
+}
+
+/**
+ 字符串最全判空
+
+ @param aStr 传入需要判断的字符串
+ @return 如果为空则返回YES 不为空返回NO
  */
 +(BOOL)isBlankString:(NSString *)aStr {
-    if (!aStr) {
-        return YES;
+    
+    if (![aStr isKindOfClass:[NSString class]]) {
+        aStr = [NSString stringWithFormat:@"%@",aStr];
     }
-    if (aStr == nil || aStr == NULL) {
+    if (!aStr) {
         return YES;
     }
     if ([aStr isKindOfClass:[NSNull class]]) {
@@ -970,5 +1090,398 @@
         return YES;
     }
     return NO;
+}
+
+/**
+ 字符串最全判空
+ 
+ @param aStr 传入需要判断的字符串
+ @return 如果为空则返回@"" 不为空返回原字符串
+ */
++(NSString*)isNilString:(NSString *)aStr {
+    
+    if (![aStr isKindOfClass:[NSString class]]) {
+        aStr = [NSString stringWithFormat:@"%@",aStr];
+    }
+    if (!aStr) {
+        return @"";
+    }
+    if ([aStr isKindOfClass:[NSNull class]]) {
+        return @"";
+    }
+    if (!aStr.length) {
+        return @"";
+    }
+    NSCharacterSet *set = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+    NSString *trimmedStr = [aStr stringByTrimmingCharactersInSet:set];
+    if (!trimmedStr.length) {
+        return @"";
+    }
+    return aStr;
+}
+
+/**
+ ** view左右上角或左右下角_圆角设置
+ */
++(UIView*)maskCornerWithView:(UIView *)view StyleType:(WXRectCorner)styleType cornerRadii:(CGFloat)cornerRadii{
+    
+    UIBezierPath *maskPath =[UIBezierPath bezierPath];
+    
+    if (styleType==WXRectCornerTopLeftRight) {
+        maskPath= [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerTopLeft | UIRectCornerTopRight cornerRadii:CGSizeMake(cornerRadii , cornerRadii)];
+        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
+    }else{
+        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerBottomLeft | UIRectCornerBottomRight cornerRadii:CGSizeMake(cornerRadii , cornerRadii)];
+        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
+    }
+    return view;
+}
+/**
+ ** view左右上角或左右下角_圆角设置
+ */
++(UIView*)maskCornerWithView:(UIView *)view StyleType:(WXRectCorner)styleType{
+    
+    return [MyControl maskCornerWithView:view StyleType:styleType cornerRadii:2];
+}
+
+/**单个圆角设置*/
++(UIView*)maskOneCornerWithView:(UIView *)view StyleType:(UIRectCorner)styleType cornerRadii:(CGFloat)cornerRadii
+{
+    UIBezierPath *maskPath =[UIBezierPath bezierPath];
+    if (styleType==UIRectCornerTopLeft) {
+        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerTopLeft cornerRadii:CGSizeMake(cornerRadii , cornerRadii)];
+        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
+    }else if (styleType==UIRectCornerTopRight){
+        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerTopRight cornerRadii:CGSizeMake(cornerRadii , cornerRadii)];
+        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
+    }else if (styleType==UIRectCornerBottomLeft){
+        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners:UIRectCornerBottomLeft  cornerRadii:CGSizeMake(cornerRadii, cornerRadii)];
+        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
+    }else{
+        maskPath = [UIBezierPath bezierPathWithRoundedRect:view.bounds byRoundingCorners: UIRectCornerBottomRight cornerRadii:CGSizeMake(cornerRadii, cornerRadii)];
+        view.layer.mask = [self maskLayerView:view maskPAth:maskPath];
+    }
+    return view;
+}
+
+/**单个圆角设置*/
++(UIView*)maskOneCornerWithView:(UIView *)view StyleType:(UIRectCorner)styleType
+{
+    return [MyControl maskOneCornerWithView:view StyleType:styleType cornerRadii:2];
+}
+
+
+/**
+ 判断是否安装app
+ 
+ @param indentf   例如 微信：weixin  tencent sinaweibo
+ @param urlScheme 三方提供的appid
+ @return          YES 已安装 NO 未安装
+ */
++ (BOOL)checkHasAppIndentf:(NSString *)indentf urlScheme:(NSString *)urlScheme
+{
+    BOOL hasApp = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@", indentf, urlScheme]]];
+    
+    return hasApp;
+}
+
+
++ (NSString *)returnJson:(id)params
+{
+    if (params) {
+        return @"";
+    }
+    NSString *jsonString = @"";
+    NSError *jsonError = nil;
+    NSData* jsonData =[NSJSONSerialization dataWithJSONObject:params
+                                                      options:NSJSONWritingPrettyPrinted error:&jsonError];
+    if (jsonData && !jsonError) {
+        jsonString =[[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    }
+    jsonString = [jsonString stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    jsonString = [jsonString stringByReplacingOccurrencesOfString:@"\r" withString:@""];
+    jsonString = [jsonString stringByReplacingOccurrencesOfString:@"\t" withString:@""];
+    jsonString = [jsonString stringByReplacingOccurrencesOfString:@"\r\n" withString:@""];
+    
+    return jsonString;
+}
+
+
+/**
+ 校验图片URL是否能正确拿到图片对象
+
+ @param imgUrl 将要校验的图片的URL
+ @return 返回图片的有效性 YES:图片URL有效能获得图片 NO:图片URL无效,不能拿到图片
+ */
++ (BOOL)checkImageUrl:(NSString*)imgUrl {
+    
+    NSMutableString *imageURL = [NSMutableString stringWithFormat:@"%@", imgUrl];
+    CGImageSourceRef source = CGImageSourceCreateWithURL((CFURLRef)[NSURL URLWithString:imageURL], NULL);
+    NSDictionary* imageHeader = (__bridge NSDictionary*) CGImageSourceCopyPropertiesAtIndex(source, 0, NULL);
+    
+    if ([imageHeader objectForKey:@"PixelHeight"]) {
+        NSLog(@" 校验图片URL  - Image header %@",imageHeader);
+        NSLog(@" 校验图片URL  - PixelHeight %@",[imageHeader objectForKey:@"PixelHeight"]);
+        NSLog(@" 校验图片URL  - 此图片的URL 有效 %@",imgUrl);
+        return YES;//有效图片
+    }else {
+        return NO;//有效图片
+        NSLog(@" 校验图片URL - 此图片的URL 有很大的问题 %@",imgUrl);
+    }
+    return NO;//无效图片
+}
+
+
+/**
+ 调整图片的方向
+ 
+ @param image 需要调整方向的图片
+ @param dorie orientation 目前陀螺仪检测到的硬件设备的方向
+ @param position 摄像头位置:前置摄像头或后置摄像头
+ @return 返回一个调整好正常方向的图片
+ */
++ (UIImage*)fixImageOrie:(UIImage*)image dorie:(UIDeviceOrientation)dorie position:(AVCaptureDevicePosition)position {
+    
+    UIImageOrientation orientation = UIImageOrientationUp;
+    
+    BOOL mirror = position == AVCaptureDevicePositionFront;
+    if (position == AVCaptureDevicePositionFront) {
+        NSLog(@"前置摄影头");
+        
+    }else {
+        NSLog(@"后置摄影头");
+    }
+    switch (dorie) {
+        case UIDeviceOrientationLandscapeRight:
+            orientation = mirror ? UIImageOrientationUpMirrored : UIImageOrientationDown;
+            break;
+        case UIDeviceOrientationLandscapeLeft:
+            orientation = mirror ? UIImageOrientationDownMirrored : UIImageOrientationUp;
+            break;
+        case UIDeviceOrientationPortrait:
+            orientation = mirror ? UIImageOrientationLeftMirrored : UIImageOrientationRight;
+            break;
+        case UIDeviceOrientationPortraitUpsideDown:
+            orientation = mirror ? UIImageOrientationRightMirrored : UIImageOrientationLeft;
+            break;
+        default:
+            break;
+    }
+    return [UIImage imageWithCGImage:image.CGImage scale:1.0 orientation:orientation];
+}
+
+// 获取当前控制器
++ (UIViewController*)currentViewController
+{
+    UIViewController *currentVC = [UIApplication sharedApplication].keyWindow.rootViewController;
+    
+    while (1) {
+        if ([currentVC isKindOfClass:[UITabBarController class]]) {
+            currentVC = ((UITabBarController *) currentVC).selectedViewController;
+        }
+        if ([currentVC isKindOfClass:[UINavigationController class]]) {
+            currentVC = ((UINavigationController *) currentVC).visibleViewController;
+        }
+        if (currentVC.presentedViewController) {
+            currentVC = currentVC.presentedViewController;
+        } else {
+            break;
+        }
+    }
+    
+    return currentVC;
+}
+
++ (NSData *)imageData:(UIImage *)myimage
+{
+    NSData *data=UIImageJPEGRepresentation(myimage, 0.5f);
+    
+    if (data.length>1024 *1024) {
+        if (data.length>10240*1024) {//10M以及以上
+            data=UIImageJPEGRepresentation(myimage, 0.1);//压缩之后1M~
+        }else if (data.length>5120*1024){//5M~10M
+            data=UIImageJPEGRepresentation(myimage, 0.2);//压缩之后1M~2M
+        }else if (data.length>2048*1024){//2M~5M
+            data=UIImageJPEGRepresentation(myimage, 0.5);//压缩之后1M~2.5M
+        }
+        //1M~2M不压缩
+    }
+    return data;
+}
+
++ (void)calulateImageFileSize:(UIImage *)image {
+    NSData *data = UIImagePNGRepresentation(image);
+    if (!data) {
+        data = UIImageJPEGRepresentation(image, 0.5f);//需要改成0.5才接近原图片大小，原因请看下文
+    }
+    double dataLength = [data length] * 1.0;
+    NSArray *typeArray = @[@"bytes",@"KB",@"MB",@"GB",@"TB",@"PB", @"EB",@"ZB",@"YB"];
+    NSInteger index = 0;
+    while (dataLength > 1000) {
+        dataLength /= 1000.0;
+        index ++;
+    }
+    NSLog(@"image = %.3f %@",dataLength,typeArray[index]);
+}
+
+
+/**
+ 创建二维码
+ 
+ @param string 二维码的内容
+ @param size 二维码大小
+ @return 返回生成的二维码
+ */
++ (UIImage *)createQRcodeWithString:(NSString*)string withSize:(CGFloat)size
+{
+     return [MyControl createNonInterpolatedUIImageFormCIImage:[MyControl creatQRcodeWithUrlstring:string] withSize:size];
+}
+
+
+/**
+  创建二维码
+
+ @param urlString 二维码的内容
+ @return 返回生成的二维码 CIImage
+ */
++ (CIImage *)creatQRcodeWithUrlstring:(NSString *)urlString{
+    
+    // 1.实例化二维码滤镜
+    CIFilter *filter = [CIFilter filterWithName:@"CIQRCodeGenerator"];
+    // 2.恢复滤镜的默认属性 (因为滤镜有可能保存上一次的属性)
+    [filter setDefaults];
+    // 3.将字符串转换成NSdata
+    NSData *data  = [urlString dataUsingEncoding:NSUTF8StringEncoding];
+    // 4.通过KVO设置滤镜, 传入data, 将来滤镜就知道要通过传入的数据生成二维码
+    [filter setValue:data forKey:@"inputMessage"];
+    // 5.生成二维码
+    CIImage *outputImage = [filter outputImage];
+    return outputImage;
+}
+
+
+/**
+   创建二维码
+
+ @param image 生成的二维码图片 CIImage
+ @param size 二维码图片的大小
+ @return 处理后,返回 UIImage 二维码大小
+ */
++ (UIImage *)createNonInterpolatedUIImageFormCIImage:(CIImage *)image withSize:(CGFloat)size
+{
+    CGRect extent = CGRectIntegral(image.extent);
+    CGFloat scale = MIN(size/CGRectGetWidth(extent), size/CGRectGetHeight(extent));
+    
+    // 1.创建bitmap;
+    size_t width = CGRectGetWidth(extent) * scale;
+    size_t height = CGRectGetHeight(extent) * scale;
+    CGColorSpaceRef cs = CGColorSpaceCreateDeviceGray();
+    CGContextRef bitmapRef = CGBitmapContextCreate(nil, width, height, 8, 0, cs, (CGBitmapInfo)kCGImageAlphaNone);
+    CIContext *context = [CIContext contextWithOptions:nil];
+    CGImageRef bitmapImage = [context createCGImage:image fromRect:extent];
+    CGContextSetInterpolationQuality(bitmapRef, kCGInterpolationNone);
+    CGContextScaleCTM(bitmapRef, scale, scale);
+    CGContextDrawImage(bitmapRef, extent, bitmapImage);
+    
+    // 2.保存bitmap到图片
+    CGImageRef scaledImage = CGBitmapContextCreateImage(bitmapRef);
+    CGContextRelease(bitmapRef);
+    CGImageRelease(bitmapImage);
+    return [UIImage imageWithCGImage:scaledImage];
+}
+
+/// 判断用户是否允许接收通知
++ (BOOL)isUserNotificationEnable {
+    BOOL isEnable = NO;
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 8.0f) { // iOS版本 >=8.0 处理逻辑
+        UIUserNotificationSettings *setting = [[UIApplication sharedApplication] currentUserNotificationSettings];
+        isEnable = (UIUserNotificationTypeNone == setting.types) ? NO : YES;
+    }
+    return isEnable;
+}
+
+/// 如果用户关闭了接收通知功能，该方法可以跳转到APP设置页面进行修改  iOS版本 >=8.0 处理逻辑
++ (void)goToAppSystemSetting {
+    UIApplication *application = [UIApplication sharedApplication];
+    NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+    if ([application canOpenURL:url]) {
+        if ([application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
+            if (@available(iOS 10.0, *)) {
+                [application openURL:url options:@{} completionHandler:nil];
+            } else {
+                if ([[UIApplication sharedApplication] canOpenURL:url]) {
+                    [[UIApplication sharedApplication] openURL:url];
+                }
+            }
+        } else {
+            [application openURL:url];
+        }
+    }
+}
+
+
+//截取指定 view ,渲染为图片;
++ (UIImage*)shotView:(UIView*)targetView
+{
+    // 将要被截图的view
+    // 背景图片 总的大小
+    CGSize size = targetView.frame.size;
+    UIGraphicsBeginImageContext(size);
+    // 开启上下文,使用参数之后,截出来的是原图（YES  0.0 质量高）
+    UIGraphicsBeginImageContextWithOptions(size, YES, 0.0);
+    // 裁剪的矩形范围
+    CGRect rect = CGRectMake(0, 0, size.width, size.height  );
+    //注：iOS7以后renderInContext：由drawViewHierarchyInRect：afterScreenUpdates：替代
+    [targetView drawViewHierarchyInRect:rect  afterScreenUpdates:NO];
+    // 从上下文中,取出UIImage
+    UIImage *snapshot = UIGraphicsGetImageFromCurrentImageContext();
+    // 添加截取好的图片到图片View里面
+    UIImage * image = snapshot;
+    //结束上下文(移除栈顶上下文)
+    UIGraphicsEndImageContext();
+    return image;
+}
+
++ (UIColor *)colorWithHexString:(NSString *)hexString
+{
+    NSString *cString = [[hexString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] uppercaseString];
+    
+    if ([cString hasPrefix:@"#"])
+        cString = [cString substringFromIndex:1];
+    if ([cString length] < 6)
+        return [UIColor blackColor];
+    if ([cString length] > 8)
+        return [UIColor blackColor];
+    
+    NSRange range;
+    range.location = 0;
+    range.length = 2;
+    NSString *rString = [cString substringWithRange:range];
+    
+    range.location = 2;
+    NSString *gString = [cString substringWithRange:range];
+    
+    range.location = 4;
+    NSString *bString = [cString substringWithRange:range];
+    
+    NSString *aString = @"FF";
+    if (cString.length > 6) {
+        range.location = 6;
+        aString = [cString substringFromIndex:6];
+        if (aString.length < 2) {
+            aString = [NSString stringWithFormat:@"%@0", aString];
+        }
+    }
+    
+    unsigned int r, g, b, a;
+    [[NSScanner scannerWithString:rString] scanHexInt:&r];
+    [[NSScanner scannerWithString:gString] scanHexInt:&g];
+    [[NSScanner scannerWithString:bString] scanHexInt:&b];
+    [[NSScanner scannerWithString:aString] scanHexInt:&a];
+    
+    return [UIColor colorWithRed:((float) r / 255.0f)
+                           green:((float) g / 255.0f)
+                            blue:((float) b / 255.0f)
+                           alpha:((float) a / 255.0f)];
 }
 @end
