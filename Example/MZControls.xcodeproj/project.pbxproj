@@ -248,7 +248,7 @@
 				ORGANIZATIONNAME = mozhu;
 				TargetAttributes = {
 					6003F589195388D20070C39A = {
-						DevelopmentTeam = J669Y64Z9Y;
+						DevelopmentTeam = 2CFGBUHSFA;
 					};
 					6003F5AD195388D20070C39A = {
 						TestTargetID = 6003F589195388D20070C39A;
@@ -260,6 +260,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -488,7 +489,7 @@
 			baseConfigurationReference = 60F725EA456F10154AC4B79C /* Pods-MZControls_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = J669Y64Z9Y;
+				DEVELOPMENT_TEAM = 2CFGBUHSFA;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MZControls/MZControls-Prefix.pch";
 				INFOPLIST_FILE = "MZControls/MZControls-Info.plist";
@@ -504,7 +505,7 @@
 			baseConfigurationReference = B42538CCDCB71F69FCA02635 /* Pods-MZControls_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = J669Y64Z9Y;
+				DEVELOPMENT_TEAM = 2CFGBUHSFA;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MZControls/MZControls-Prefix.pch";
 				INFOPLIST_FILE = "MZControls/MZControls-Info.plist";
